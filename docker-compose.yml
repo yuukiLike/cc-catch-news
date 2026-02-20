@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: catchnews
+      POSTGRES_USER: catchnews
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-catchnews}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catchnews"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://catchnews:${POSTGRES_PASSWORD:-catchnews}@postgres:5432/catchnews
+
+volumes:
+  postgres_data:

@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:ray.so)"
+      "WebFetch(domain:ray.so)",
+      "Bash(git -C /Users/chp/legend/cc-catch-news log --oneline --all)",
+      "WebSearch",
+      "Bash(npx tsc:*)",
+      "Skill(s-commit)"
     ]
   }
 }
