@@ -5,7 +5,9 @@
       "Bash(git -C /Users/chp/legend/cc-catch-news log --oneline --all)",
       "WebSearch",
       "Bash(npx tsc:*)",
-      "Skill(s-commit)"
+      "Skill(s-commit)",
+      "Bash(npm install openai && npm uninstall @anthropic-ai/sdk)",
+      "Bash(npm run typecheck)"
     ]
   }
 }

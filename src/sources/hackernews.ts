@@ -1,3 +1,11 @@
+/**
+ * Hacker News 数据源
+ *
+ * 使用 Algolia HN Search API，按 7 个 AI 相关关键词搜索最近 24h 的 story，
+ * 每个关键词取 50 条，用 objectID 去重后返回。
+ *
+ * API 文档：https://hn.algolia.com/api
+ */
 import type { RawArticle, SourcePlugin } from "./types.js";
 import { logger } from "../utils/logger.js";
 import { withRetry } from "../utils/retry.js";
@@ -29,11 +37,12 @@ export const hackernewsSource: SourcePlugin = {
   async fetch(since?: Date): Promise<RawArticle[]> {
     const log = logger.child({ source: "hackernews" });
 
-    // Default to last 24 hours
+    // 默认取最近 24 小时
     const sinceTs = since
       ? Math.floor(since.getTime() / 1000)
       : Math.floor(Date.now() / 1000) - 24 * 60 * 60;
 
+    // 搜索关键词列表，覆盖主流 AI 术语
     const queries = [
       "AI",
       "LLM",
@@ -44,6 +53,7 @@ export const hackernewsSource: SourcePlugin = {
       "neural network",
     ];
 
+    // 用 objectID 做跨关键词去重
     const allHits = new Map<string, HNHit>();
 
     for (const query of queries) {
@@ -71,6 +81,7 @@ export const hackernewsSource: SourcePlugin = {
 
     log.info({ count: allHits.size }, "Fetched HN articles");
 
+    // 转换为统一的 RawArticle 格式，跳过没有 URL 的条目（Ask HN 等）
     const articles: RawArticle[] = [];
     for (const hit of allHits.values()) {
       const articleUrl = hit.url || hit.story_url;

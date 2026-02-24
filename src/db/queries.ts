@@ -1,3 +1,9 @@
+/**
+ * 数据库查询层
+ *
+ * 所有函数都先检查 DB 是否可用（getDb() 可能返回 null），
+ * 不可用时返回空值，不影响 pipeline 运行。
+ */
 import { eq } from "drizzle-orm";
 import { getDb } from "./client.js";
 import { articles, runs, digestItems } from "./schema.js";
@@ -8,6 +14,7 @@ import { logger } from "../utils/logger.js";
 
 const log = logger.child({ module: "db-queries" });
 
+/** 创建一条 pipeline 运行记录 */
 export async function createRun(sourceNames: string[], outputNames: string[]) {
   const db = getDb();
   if (!db) return null;
@@ -19,6 +26,7 @@ export async function createRun(sourceNames: string[], outputNames: string[]) {
   return run;
 }
 
+/** 更新运行记录的结束状态 */
 export async function finishRun(
   runId: number,
   status: string,
@@ -41,6 +49,7 @@ export async function finishRun(
     .where(eq(runs.id, runId));
 }
 
+/** 批量 upsert 文章，URL hash 冲突时跳过（去重），返回 url → articleId 映射 */
 export async function upsertArticles(rawArticles: RawArticle[]) {
   const db = getDb();
   if (!db) return new Map<string, number>();
@@ -76,6 +85,7 @@ export async function upsertArticles(rawArticles: RawArticle[]) {
   return urlToId;
 }
 
+/** 将 AI 筛选后的摘要条目存入 DB */
 export async function insertDigestItems(
   runId: number,
   items: DigestItem[],

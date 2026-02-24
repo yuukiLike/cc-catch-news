@@ -1,3 +1,9 @@
+/**
+ * 通用重试工具 — 指数退避
+ *
+ * 默认最多 3 次，初始延迟 1s，每次翻倍，上限 30s。
+ * 所有网络调用（HN API、AI API、Discord Webhook）都通过这里重试。
+ */
 import { logger } from "./logger.js";
 
 interface RetryOptions {
@@ -21,6 +27,7 @@ export async function withRetry<T>(
         logger.error({ error, label, attempt }, "All retry attempts exhausted");
         throw error;
       }
+      // 指数退避：1s → 2s → 4s → ...，不超过 maxDelayMs
       const delay = Math.min(baseDelayMs * 2 ** (attempt - 1), maxDelayMs);
       logger.warn({ label, attempt, delay, error }, "Retrying after failure");
       await new Promise((resolve) => setTimeout(resolve, delay));

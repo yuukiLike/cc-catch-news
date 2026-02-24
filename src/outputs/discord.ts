@@ -1,8 +1,15 @@
+/**
+ * Discord 输出插件
+ *
+ * 将摘要格式化为 Markdown，通过 Webhook 推送到 Discord 频道。
+ * Discord 单条消息限制 2000 字符，超出时自动拆分。
+ */
 import type { FormattedDigest, OutputPlugin } from "./types.js";
 import { config } from "../config.js";
 import { logger } from "../utils/logger.js";
 import { withRetry } from "../utils/retry.js";
 
+/** 将摘要列表格式化为 Discord Markdown */
 function formatDigestMessage(digest: FormattedDigest): string {
   const date = digest.generatedAt.toISOString().slice(0, 10);
   const lines: string[] = [`## 🤖 AI 资讯日报 — ${date}\n`];
@@ -17,7 +24,7 @@ function formatDigestMessage(digest: FormattedDigest): string {
   return lines.join("\n");
 }
 
-// Discord limits messages to 2000 chars
+/** 按 Discord 2000 字符限制拆分消息，按行拆不会截断格式 */
 function splitMessage(content: string, limit = 2000): string[] {
   if (content.length <= limit) return [content];
 
@@ -64,7 +71,7 @@ export const discordOutput: OutputPlugin = {
         "discord-send",
       );
 
-      // Rate limit: wait between chunks
+      // 多条消息时加 500ms 间隔，避免触发 Discord 限流
       if (chunks.length > 1) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
