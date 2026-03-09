@@ -1,6 +1,6 @@
-# 方案 A：GitHub Actions（最极简）
+# 方案 A：GitHub Actions（验证期默认）
 
-> 零成本，零服务器，直接用现有代码。
+> 零服务器、零运维，用现有代码最快拿到真实反馈。
 
 ## 架构
 
@@ -8,8 +8,8 @@
 GitHub Actions (cron 每 6h)
   └─ npm run run-once
        ├─ HN 抓取 (Algolia API)
-       ├─ 内存去重 (URL hash)
-       ├─ AI 筛选 + 中文摘要 (DeepSeek)
+       ├─ 运行内去重 (URL hash, 单次执行内)
+       ├─ AI 筛选 + 中文摘要
        └─ Discord Webhook 推送
 ```
 
@@ -17,9 +17,9 @@ GitHub Actions (cron 每 6h)
 
 | 项目 | 费用 |
 |------|------|
-| GitHub Actions | 免费（私有仓库 2000 分钟/月，公开无限） |
-| AI API | ~$0.5/月 |
-| **合计** | **~$0.5/月** |
+| GitHub Actions | 免费（私有仓库 2000 分钟/月，公开仓库基本够用） |
+| AI API | 按量计费 |
+| **合计** | **约 $0 + AI API** |
 
 ## 实施步骤
 
@@ -42,7 +42,7 @@ name: Catch News
 on:
   schedule:
     - cron: '0 */6 * * *'
-  workflow_dispatch:  # 支持手动触发
+  workflow_dispatch:
 
 jobs:
   run:
@@ -67,32 +67,23 @@ jobs:
 
 ### 3. 配置 Secrets
 
-在 GitHub 仓库 Settings → Secrets → Actions 中添加：
-
 | Secret | 值 |
 |--------|----|
-| `AI_API_KEY` | DeepSeek / OpenAI API Key |
+| `AI_API_KEY` | DeepSeek / OpenAI 兼容 API Key |
 | `DISCORD_WEBHOOK_URL` | Discord Webhook URL |
-
-### 4. 推送并验证
-
-```bash
-git add .github/workflows/catch-news.yml
-git commit -m "ci: add scheduled news pipeline"
-git push
-```
-
-在 Actions 页面手动触发一次验证。
 
 ## 优点
 
-- 零基础设施成本
-- 代码已经写好，直接用
-- 运维为零
+- 现有代码可直接复用
+- 上手最快，验证成本最低
+- 无主机运维负担
 
 ## 局限
 
-- 无持久化，每次跑完数据就没了
-- 不去重（6h 间隔内可能有重复文章）
-- cron 不精确，可能延迟几分钟
-- 60 天无活动会被 GitHub 自动禁用
+- 仅“单次运行内去重”，不做跨运行去重
+- 无持久化历史（未配置数据库时）
+- GitHub cron 触发时间可能有分钟级偏移
+
+## 何时升级到方案 B
+
+当你确认“内容值得长期追踪”，并需要历史查询/运行追踪时，升级到 Supabase。

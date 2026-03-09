@@ -102,7 +102,7 @@ docker compose exec postgres psql -U catchnews -c "SELECT * FROM runs ORDER BY i
 - 数据库本地化，查询快
 - 可以跑多个项目共用服务器
 - node-cron 精准调度，无延迟
-- 支持所有功能：去重、历史、Product Hunt、企业微信
+- 支持运行内去重、历史、Product Hunt、企业微信（跨运行去重可在现有 DB 基础上追加）
 
 ## 局限
 
